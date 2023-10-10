@@ -9,9 +9,6 @@ const INSERT = 'todos/INSERT';
 const TOGGLE = 'todos/TOGGLE';
 const REMOVE = 'todos/REMOVE';
 
-/*
-그리고 뭘 해야할까? 정의한 액션에 대한 함수를 작성하자.
- */
 export const changeInput = input => ({
     type: CHANGE_INPUT, //위에서 정의한 액션 타입과
     input //파라미터
