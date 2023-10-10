@@ -1,32 +1,22 @@
-import {bindActionCreators} from "redux";
-import {connect} from 'react-redux';
+import {connect, useDispatch} from 'react-redux';
 import Counter from '../components/Counter';
-import {increase, decrease} from '../modules/counter'; //counter함수에서 increase, decrease 함수 불러옴.
+import {increase, decrease} from '../modules/counter';
+import { useSelector } from "react-redux";
+import {useCallback} from "react";
 
-const CounterContainer = ({number, increase, decrease}) => {
-    return <Counter number={number} onIncrease={increase} onDecrease={decrease}/>;
+const CounterContainer = () => {
+    const number = useSelector(state => state.counter.number);
+    const dispatch = useDispatch();
+    //컴포넌트 리렌더링 될 때마다 증가, 감소함수 각각 새롭게 만들어짐.
+    //useCallback을 사용하여 컴포넌트 최적화 필요
+    const onIncrease = useCallback(() => dispatch(increase()),[dispatch]);
+    const onDecrease = useCallback(() => dispatch(decrease()), [dispatch]);
+
+    return <Counter
+        number={number}
+        onIncrease={onIncrease()}
+        onDecrease={onDecrease()}
+    />;
 };
 
-/*
-const mapStateToProps = state => ({
-    number: state.counter.number, //상태의 카운터의 number
-});
-
-const mapDispatchToProps = dispatch => ({
-    increase: () => {
-        // console.log('increase');
-        dispatch(increase());
-    },
-    decrease: () => {
-        // console.log('decrease');
-        dispatch(decrease());
-    },
-});
-*/
-
-export default connect(
-    state => ({
-        number: state.counter.number,
-    }),
-    {increase, decrease},
-)(CounterContainer);
+export default CounterContainer;

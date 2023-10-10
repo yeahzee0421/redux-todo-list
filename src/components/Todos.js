@@ -47,7 +47,7 @@ const Todos = ({
                         onToggle={onToggle}
                         onRemove={onRemove}
                     />
-                ))}
+                ))};
             </div>
         </div>
     )
