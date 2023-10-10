@@ -1,43 +1,23 @@
-/*
-액션 타입 정의
-투두리스트에서 어떤 액션이 필요한가?
-input 작성 중 수정, 삽입, 체크, 삭제
-해당 액션들을 const로 정의하고 시작하자.
- */
+import {createAction, handleActions} from 'redux-actions';
+import { produce } from 'immer';
+
 const CHANGE_INPUT = 'todos/CHANGE_INPUT'; //인풋값 변경
 const INSERT = 'todos/INSERT';
 const TOGGLE = 'todos/TOGGLE';
 const REMOVE = 'todos/REMOVE';
 
-export const changeInput = input => ({
-    type: CHANGE_INPUT, //위에서 정의한 액션 타입과
-    input //파라미터
-});
+export const changeInput = createAction(CHANGE_INPUT, input => input);
 let id = 3; //insert 호출될 때마다 1씩 증가
 
-export const insert = text => ({
-    type: INSERT,
-    todo:{
-        id: id++,
-        /*
-        todo 항목마다 id 붙여줘야 toggle이나 remove와 같은 작업 처리 가능
-        즉 id 값은 각 todo 개체가 들고 있게 될 고유값.
-        */
-        text,
-        done: false
-    }
-});
+export const insert = createAction(INSERT, text => ({
+    id: id++,
+    text,
+    done: false,
+}));
 
 //토글 작업과 삭제 작업은 모두 id를 파라미터로 가진다.
-export const toggle = id => ({
-    type: TOGGLE,
-    id
-})
-
-export const remove = id => ({
-    type: REMOVE,
-    id
-})
+export const toggle = createAction(TOGGLE, id => id);
+export const remove = createAction(REMOVE, id => id);
 
 
 //초기 상태 및 리듀서 함수. 선언하지 않으면 에러 발생
@@ -57,35 +37,39 @@ const initialState = {
     ],
 };
 
-//리듀서 함수 작성
-function todos(state = initialState, action){
-    switch (action.type){
-        case CHANGE_INPUT:
-            return{
-                ...state,
-                input: action.input
-            };
-        case INSERT:
-            return{
-                ...state,
-                todos: state.todos.concat(action.todo)
-            };
-        case TOGGLE:
-            return{
-                ...state,
-                todos: state.todos.map(todo =>
-                    todo.id === action.id ? {...todo, done: !todo.done} : todo)
-            };
-        case REMOVE:
-            return{
-                ...state,
-                todos: state.todos.filter(todo =>
-                    todo.id !== action.id)
-            };
-        default:
-            return {
-                ...state
-            }
-    }
-}
+//리듀서 함수 작성 + immer
+//handleActions 함수 & 객체 비구조화 문법 사용
+const todos = handleActions(
+    {
+        [CHANGE_INPUT]: (state, {payload: input}) =>
+            produce(state, draft => {
+                draft.input = input;
+            }),
+        [INSERT]: (state, {payload: todo}) =>
+            produce(state, draft => {
+                draft.todos.push(todo);
+            }),
+        [TOGGLE]: (state, {payload: id}) =>
+            produce(state, draft => {
+                const todo = draft.todos.find(todo => todo.id === id);
+                todo.done = !todo.done;
+            }),
+        //     ({
+        //     ...state,
+        //     todos: state.todos.map(todo =>
+        //     todos.id === id ? {...todo, done: !todo.done} : todo),
+        // }),
+        [REMOVE]: (state, {payload: id}) =>
+            produce(state, draft => {
+                const index = draft.todos.findIndex(todo => todo.id === id);
+                draft.todos.splice(index, 1);
+            }),
+        //     ({
+        //     ...state,
+        //     todos: state.todos.filter(todos => todos.id !== id),
+        // }),
+    },
+    initialState,
+);
+
 export default todos;
